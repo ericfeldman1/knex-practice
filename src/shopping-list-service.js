@@ -1,7 +1,9 @@
 const ShoppingListService = {
     
     getAllItems(knex) {
-        return knex.select('*').from('shopping_list')
+        return knex
+        .select('*')
+        .from('shopping_list')
     },
     
     insertItem(knex, newItem) {
@@ -15,7 +17,11 @@ const ShoppingListService = {
     },
     
     getById(knex, id) {
-        return knex.from('shopping_list').select('*').where('id', id).first()
+        return knex
+        .from('shopping_list')
+        .select('*')
+        .where('id', id)
+        .first()
     },
 
     deleteItem(knex, id) {

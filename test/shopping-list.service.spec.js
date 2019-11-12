@@ -1,7 +1,7 @@
 const ShoppingListService = require('../src/shopping-list-service')
 const knex = require('knex')
 
-describe('Shopping List service object', function() {
+describe('Shopping List Service object', function() {
     let db
     let testItems = [
         {
@@ -9,7 +9,6 @@ describe('Shopping List service object', function() {
             date_added: new Date('2029-01-22T16:28:32.615Z'),
             name: 'First test item!',
             price: 1.0,
-            checked: true,
             category: "Breakfast"
         },
         {
@@ -17,7 +16,6 @@ describe('Shopping List service object', function() {
             date_added: new Date('2029-02-22T16:28:32.615Z'),
             name: 'Second test item!',
             price: 2.0,
-            checked: false,
             category: "Lunch"
         },
         {
@@ -25,7 +23,6 @@ describe('Shopping List service object', function() {
             date_added: new Date('2029-03-22T16:28:32.615Z'),
             name: 'Third test item!',
             price: 3.0,
-            checked: true,
             category: "Main"
         },
 
@@ -37,12 +34,6 @@ describe('Shopping List service object', function() {
             connection: process.env.TEST_DB_URL,
         })
     })
-
-      // before(() => {
-      //    return db
-      //      .into('shopping_list')
-      //      .insert(testItems)
-      //  })
 
         before(() => db('shopping_list').truncate())
 
@@ -59,9 +50,13 @@ describe('Shopping List service object', function() {
 
 
         it(`getAllItems() resolves all items from 'shopping_list' table`, () => {
+          const expectedItems = testItems.map(item => ({
+            ...item,
+            checked: false,
+          }))
           return ShoppingListService.getAllItems(db)
             .then(actual => {
-              expect(actual).to.eql(testItems)
+              expect(actual).to.eql(expectedItems)
             })
         })
 
@@ -69,9 +64,14 @@ describe('Shopping List service object', function() {
             const itemId = 3
             return ShoppingListService.deleteItem(db, itemId)
               .then(() => ShoppingListService.getAllItems(db))
-              .then(allArticles => {
-                // copy the test articles array without the "deleted" article
-                const expected = testItems.filter(item => item.id !== itemId)
+              .then(allItems => {
+                // copy the test items array without the "deleted" item
+                const expected = testItems
+                .filter(item => item.id !== itemId)
+                .map(item => ({
+                  ...item,
+                  checked: false,
+                }))
                 expect(allItems).to.eql(expected)
               })
           })
@@ -80,17 +80,18 @@ describe('Shopping List service object', function() {
                  const idOfItemToUpdate = 3
                  const newItemData = {
                    name: 'updated name',
-                   price: 'updated price',
+                   price: 99.99,
                    date_added: new Date(),
-                   checked: 'updated checked status',
-                   category: 'updated category'
-
+                   checked: true,
+                  //  category: 'updated category'
                  }
+                 const originalItem = testItems[idOfItemToUpdate - 1]
                  return ShoppingListService.updateItem(db, idOfItemToUpdate, newItemData)
                    .then(() => ShoppingListService.getById(db, idOfItemToUpdate))
                    .then(item => {
                      expect(item).to.eql({
                        id: idOfItemToUpdate,
+                       ...originalItem,
                        ...newItemData,
                      })
                    })
@@ -140,7 +141,7 @@ describe('Shopping List service object', function() {
                    name: thirdTestItem.name,
                    price: thirdTestItem.price,
                    date_added: thirdTestItem.date_added,
-                   checked: thirdTestItem.checked,
+                   checked: false,
                    category: thirdTestItem.category
                  })
                })
